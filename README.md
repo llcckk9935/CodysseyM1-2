@@ -5,8 +5,8 @@
 GPT 요약 기반 채팅 호출 코드, 대화 자동/수동 저장·목록·불러오기·삭제,
 바닐라 웹 화면·SVG 가격 그래프·CSV 다운로드·다크 모드.
 Function Calling 및 GPT Actions용 읽기 API·스키마 생성기 구현.
-아직 미완료: 실제 GPT 도구 호출·GPT Actions 외부 연결 검증, Render·Vercel 배포와 제출 스크린샷.
-브라우저 실행·실서비스 연결 검증은 아직 완료하지 않았다.
+필수 기능 중 실제 데이터 조회·AI 채팅·대화 자동 저장과 불러오기·양쪽 배포를 확인했다.
+데이터 편집 인증 설정과 웹에서 추가·수정·삭제 검증을 완료했다. 선택 과제인 GPT Actions 외부 연결은 아직 검증하지 않았다.
 
 ## 실행 (Python 3.10 이상)
 ```bash
@@ -25,15 +25,16 @@ Swagger: http://127.0.0.1:8000/docs
 테스트: `python -m pytest -q` (실제 Firestore 대신 테스트 전용 저장소 사용).
 초기 가져오기: `python import_csv.py ../data/opinet_2025_original.csv`
 전체 파일 검증 후 날짜별로 생성한다. 기존 날짜는 건너뛰며 재실행해도 덮어쓰지 않는다.
-Firestore 실제 연결·저장 검증은 서비스 계정 준비 후 별도로 수행한다.
+2026-10-09: 실제 Firestore에 원본 데이터 365개를 저장하고 배포 API 요약 응답을 확인했다.
 
 ## 설정
 - FIREBASE_SERVICE_ACCOUNT_JSON 또는 FIREBASE_SERVICE_ACCOUNT_PATH: 서버 전용 인증 정보.
 - ALLOWED_ORIGINS: 쉼표로 구분한 프론트 주소.
 - ADMIN_API_TOKEN: 편집 요청의 X-Admin-Token 값. Vercel 공개 환경 설정에 넣지 않는다.
-- OPENAI_API_KEY: 서버 전용 OpenAI 키.
-- OPENAI_MODEL: 사용자 계정에서 사용 가능한 GPT 모델 ID를 직접 설정. 설정 전 실행하지 않는다.
-- CHAT_MAX_COMPLETION_TOKENS: 기본 800, 100~2000으로 제한.
+- OPENAI_API_KEY: 서버 전용 API 키. 배포 서비스는 사용자 제공 Codyssey 호환 API 키를 사용한다.
+- OPENAI_BASE_URL: 호환 API 주소. 배포값은 https://copa.codyssey.kr/v1. OpenAI SDK가 환경 변수에서 읽는다.
+- OPENAI_MODEL: 배포값 gpt-5-mini. 다른 계정에서는 사용 가능한 모델을 설정한다.
+- CHAT_MAX_COMPLETION_TOKENS: 기본 800, 100~2000으로 제한. 배포값 2000. 800 설정에서 미완료 응답이 발생해 늘렸다.
 - CHAT_REQUESTS_PER_MINUTE: 세션별 UTC 분당 시도 한도, 기본 5 (최대 10).
 - CHAT_DAILY_REQUEST_LIMIT: 서비스 전체 UTC 일별 시도 한도, 기본 100 (최대 1000).
 - API_BASE_URL: 다음 단계 프론트 빌드 설정용.
@@ -74,7 +75,10 @@ https://firebase.google.com/docs/firestore/manage-data/transactions
 제출 저장소: https://github.com/llcckk9935/CodysseyM1-2
 2026-10-09: 연결된 llcckk9935 계정의 저장소 읽기·쓰기 권한 확인.
 Render 설정 파일 render.yaml 및 상세 준비 안내 docs/deployment.md를 마련했다.
-Render 백엔드 / Vercel 프론트 / 배포 Swagger: 아직 없음.
+Render 백엔드: https://codysseym1-2-k5mi.onrender.com
+Swagger: https://codysseym1-2-k5mi.onrender.com/docs
+Vercel 프론트: https://codysseym1-2-frontend-psi.vercel.app/
+2026-10-09 배포 성공. Render ALLOWED_ORIGINS에 위 주소를 설정했다.
 Vercel 프로젝트 Root Directory는 frontend로 설정하고 API_BASE_URL에 Render 서버 URL을 지정한다.
 build.mjs가 환경 변수를 config.js로 내보낸다. 이 값은 공개되는 서버 주소이며 비밀 키를 넣으면 안 된다.
 
@@ -97,8 +101,8 @@ CSV는 표시 중인 전체 기록을 내보내며 source, is_modified, unit을 
 ### 프론트 검증 현황
 JavaScript 문법, 환경 변수 기반 빌드, HTML ID 연결 검사를 통과했다.
 Playwright 실행용 test-ui.cjs를 작성했으나 Chromium 설치 다운로드 실패로 실행하지 못했다.
-따라서 실제 브라우저에서 그래프·채팅·CRUD·내보내기·모바일 배치는 아직 검증되지 않았다.
-다음 실제 연결 단계에서 이 검증과 제출 스크린샷을 수행해야 한다.
+배포된 브라우저에서 365개 기록·요약·가격 그래프·실제 AI 채팅·자동 저장·대화 불러오기를 확인했다.
+웹에서 임시 기록 추가·수정·삭제 및 CSV 다운로드를 검증했다. 모바일 전용 자동 테스트는 실행하지 않았다.
 테스트 코드는 Playwright와 Chromium이 설치된 환경에서 실행한다.
 UI_FIXTURE는 {rows:[...],summary:{...}} 형식의 JSON 경로,
 UI_SCREENSHOT / UI_MOBILE_SCREENSHOT은 테스트 이미지 출력 경로다.
@@ -109,8 +113,13 @@ HTTP 픽스처 테스트의 AI 응답은 테스트용이며 제출 화면으로 
 잘못된 날짜·가격·필드, CSV 기준 통계, 날짜 누락 시 추세 판단 중단, 동률 극값 검증.
 추가 검증: 요약 프롬프트 주입, 자동 저장·후속 대화·수동 저장, 세션 간 접근 차단,
 목록·불러오기·삭제, 요청 한도, AI 오류 및 저장 실패 처리, 토큰 설정 전달.
-API 테스트는 저장소와 AI 응답 대역을 사용한다. 실제 OpenAI 호출·Firestore 저장 성공을
-의미하지 않는다. 실제 계정 모델의 호환성·권한·과금도 아직 검증하지 않았다.
+API 단위 테스트는 저장소와 AI 응답 대역을 사용한다. 실제 OpenAI 호출 성공을 의미하지 않는다.
+별도 배포 검증: Firestore 365개 입력 완료, 요약 API HTTP 200 및 count=365 확인.
+대화 저장 HTTP 201, 목록·전체 메시지 불러오기 HTTP 200, 검증용 대화 삭제 HTTP 204 확인.
+ADMIN_API_TOKEN을 서버 환경 변수로 등록한 뒤 2026-01-01 검증용 기록을 추가(1700원), 수정(1701원), 삭제했다. 원본 365개와 평균 1680.32원/L를 복구 확인했다.
+실제 백엔드 URL을 API_BASE_URL로 지정한 프론트 빌드 성공. Codyssey 호환 API의 gpt-5-mini 호출 HTTP 200 확인.
+실제 질문에 평균 1,680.32원/L로 답변하여 요약 통계와 일치했다. 웹에서 자동 저장·이전 대화 불러오기 성공 확인.
+요청은 토큰·횟수 한도 안에서 실행하며 API 사용 비용은 키 제공자의 정책에 따른다.
 
 ## 채팅과 대화 API
 - POST /api/chat: `{ "message": "평균 가격은?", "conversation_id": null }`.
@@ -169,3 +178,15 @@ ACTIONS_PUBLIC_BASE_URL은 실제 배포된 HTTPS 백엔드 주소다.
 
 API 호출 방식 참고:
 https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
+
+## 제출 스크린샷
+
+실제 배포 서비스에서 촬영했다. CRUD 화면의 2026-01-01은 검증용 임시 입력이며 촬영 후 삭제했다.
+
+![데이터 요약과 그래프](data-summary.jpg)
+
+![실제 AI 질문과 답변 및 대화 불러오기](conversation-load.jpg)
+
+![데이터 수정 저장 성공](data-crud-success.jpg)
+
+관리자 토큰은 Render의 ADMIN_API_TOKEN을 확인하여 웹의 편집 인증 설정에 입력한다. 공개 문서·프론트 코드에는 토큰을 싣지 않는다.
