@@ -1,0 +1,1 @@
+{"name":"fuel-assistant-frontend","private":true,"scripts":{"build":"node build.mjs"}}
