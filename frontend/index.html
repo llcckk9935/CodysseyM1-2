@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>유가노트 — 보통휘발유 가격 분석 비서</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+<header class="topbar"><a href="#" class="brand">유가<span>노트</span><small>전국 보통휘발유 · 기록 분석</small></a>
+  <button id="theme" class="secondary" aria-pressed="false">다크 모드</button></header>
+<main>
+  <section class="intro"><div><p class="eyebrow">가격을 기록하고, 흐름을 이해하세요</p>
+    <h1>숫자에서 찾는<br>휘발유 가격의 흐름</h1>
+    <p>저장된 가격을 비교하고 AI에게 질문하세요.<br>분석 기준은 최신 저장 날짜이며, 실시간 가격이 아닙니다.</p></div>
+    <div class="source-card"><span class="status-dot"></span> 데이터 출처
+      <strong>한국석유공사 오피넷</strong><p>사용자 제공 전국 평균가격 CSV<br>보통휘발유 · 원/리터</p>
+      <a href="https://www.opinet.co.kr/user/dopospdrg/dopOsPdrgSelect.do" target="_blank" rel="noopener">원본 제공 화면 ↗</a>
+    </div></section>
+  <p id="notice" class="notice" role="status" aria-live="polite">데이터를 불러오는 중입니다. 서버 첫 연결은 시간이 걸릴 수 있습니다.</p>
+  <section aria-label="데이터 요약" class="metrics">
+    <article><p>일별 단순평균</p><strong id="average">—</strong><small>원/리터</small></article>
+    <article><p>저장 기간 최저</p><strong id="minimum">—</strong><small id="min-date">—</small></article>
+    <article><p>저장 기간 최고</p><strong id="maximum">—</strong><small id="max-date">—</small></article>
+    <article><p>마지막 7일 / 직전 7일</p><strong id="trend">—</strong><small id="trend-detail">—</small></article>
+  </section>
+  <section class="panel chart-panel"><div class="section-head"><div><h2>가격 흐름</h2><p id="period">저장 기간과 기록 개수를 확인하고 있습니다.</p></div>
+    <button id="export" class="secondary" disabled>CSV 다운로드</button></div>
+    <div id="chart" role="img" aria-label="날짜별 가격 그래프"><p>데이터 연결 후 그래프가 표시됩니다.</p></div>
+    <p class="caption" id="chart-caption">일별 전국 평균가격. 주유소별 가격이나 개인 주유비가 아닙니다.</p>
+    <details><summary>월별 평균과 계산 기준</summary><div id="monthly"></div>
+      <p>평균 = 일별 가격 합계 ÷ 기록 수. 기간 변화율 = (마지막 가격 − 첫 가격) ÷ 첫 가격 × 100.<br>
+      주간 추세는 마지막 저장 날짜 기준 두 기간의 7일 평균을 비교하며, 날짜가 빠져 있으면 자료 부족으로 표시합니다.</p>
+      <p id="period-change">기간 변화율: —</p></details>
+  </section>
+  <div class="workspace">
+    <section class="panel chat-panel"><div class="section-head"><div><h2>가격 분석 비서</h2><p>저장된 통계를 근거로 질문에 답합니다.</p></div><button id="new-chat" class="secondary">새 대화</button></div>
+      <div class="suggestions"><button data-question="저장된 기간의 평균 가격은 얼마인가요?">평균 가격</button><button data-question="가장 비싸거나 쌌던 날은 언제인가요?">최고·최저 날짜</button><button data-question="마지막 일주일은 그 전주보다 올랐나요?">주간 변화</button></div>
+      <div id="messages" class="messages" role="log" aria-live="polite"><p class="empty">궁금한 가격 흐름을 물어보세요.</p></div>
+      <p id="chat-status" role="status" aria-live="polite"></p>
+      <form id="chat-form"><label class="sr-only" for="question">질문</label><textarea id="question" maxlength="2000" rows="2" placeholder="예: 월별 평균 가격은 어떻게 달랐나요?" required></textarea><button id="send" type="submit">질문 보내기</button></form>
+      <p class="caption">현재 가격·미래 가격·가격 변동 원인은 이 기록만으로 확인할 수 없습니다. AI 답변은 요약 수치와 함께 확인하세요.</p>
+    </section>
+    <aside class="panel history-panel"><div class="section-head"><h2>이전 대화</h2><button id="refresh-history" class="secondary">새로고침</button></div>
+      <p class="caption">이 브라우저의 익명 세션에 저장됩니다. 브라우저 저장 정보를 지우면 기록에 다시 접근하지 못할 수 있습니다.</p>
+      <div id="history"><p class="empty">대화 목록을 불러오는 중입니다.</p></div>
+    </aside>
+  </div>
+  <section class="panel"><div class="section-head"><div><h2>데이터 관리</h2><p>날짜별 가격을 추가하거나 수정·삭제합니다.</p></div><button id="refresh-data" class="secondary">새로고침</button></div>
+    <details><summary>편집 인증 설정</summary><label for="admin-token">편집 인증 토큰</label><input id="admin-token" type="password" autocomplete="off" placeholder="서버에 설정한 ADMIN_API_TOKEN"><p class="caption">토큰은 메모리에만 유지됩니다. 서버 키나 OpenAI 키를 입력하지 마세요.</p></details>
+    <form id="data-form" class="data-form"><div><label for="date">날짜</label><input id="date" type="date" required></div><div><label for="value">가격 (원/리터)</label><input id="value" type="number" min="0.01" max="99999999.99" step="0.01" required></div><div class="memo-field"><label for="memo">메모</label><input id="memo" maxlength="1000" placeholder="선택 입력"></div><button id="save-data" type="submit">기록 추가</button><button id="cancel-edit" type="button" class="secondary" hidden>취소</button></form>
+    <p id="data-status" role="status" aria-live="polite"></p>
+    <div class="table-scroll"><table><caption class="sr-only">저장된 일별 가격 목록</caption><thead><tr><th>날짜</th><th>가격 (원/리터)</th><th>출처 상태</th><th>메모</th><th>관리</th></tr></thead><tbody id="data-rows"></tbody></table></div>
+    <div class="pagination"><button id="prev" class="secondary">이전</button><span id="page-label">—</span><button id="next" class="secondary">다음</button></div>
+  </section>
+</main><footer>유가노트 · 교육 프로젝트 · 출처: 한국석유공사 오피넷 사용자 제공 CSV · 원본 가격 전수 대조 미실시</footer>
+</body></html>
