@@ -1,0 +1,108 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fuel Price Summary Action",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://codysseym1-2-k5mi.onrender.com"
+    }
+  ],
+  "paths": {
+    "/api/actions/summary": {
+      "get": {
+        "operationId": "getFuelPriceSummary",
+        "summary": "조회 기간의 전국 보통휘발유 저장 가격 통계",
+        "description": "저장된 과거 기록만 조회. 최근은 as_of 기준. 실시간 가격·예측·변동 원인은 제공하지 않는다.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "as_of": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "metrics": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "additionalProperties": true
+                    },
+                    "trend": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "monthly": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid action key"
+          },
+          "422": {
+            "description": "Invalid period"
+          },
+          "503": {
+            "description": "Configuration or storage unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
