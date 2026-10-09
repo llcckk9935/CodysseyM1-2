@@ -53,7 +53,7 @@ def actions_schema(base_url):
                     'additionalProperties': True}}}},
                 '401': {'description': 'Invalid action key'}, '422': {'description': 'Invalid period'},
                 '503': {'description': 'Configuration or storage unavailable'}}}}},
-        'components': {'securitySchemes': {'bearerAuth': {'type': 'http', 'scheme': 'bearer'}}}}
+        'components': {'schemas': {}, 'securitySchemes': {'bearerAuth': {'type': 'http', 'scheme': 'bearer'}}}}
 
 
 @router.get('/actions/openapi.json', include_in_schema=False)
