@@ -50,6 +50,7 @@ const assert=require('node:assert/strict');
   const download=page.waitForEvent('download');await page.locator('#export').click();
   const file=await download;const contents=fs.readFileSync(await file.path(),'utf8');
   assert(contents.includes('2025-01-01'));assert(contents.includes('KRW/L'));
+  await page.locator('details').filter({has:page.locator('#admin-token')}).locator('summary').click();
   await page.locator('#admin-token').fill('fixture-token');
   await page.locator('#data-rows button').first().click();await page.locator('#value').fill('1800');await page.locator('#save-data').click();
   await page.waitForFunction(()=>document.getElementById('data-status').textContent==='기록을 저장했습니다.');
