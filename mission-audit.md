@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | Function Calling 스키마·도구 연결 | 충족 | get_data_summary, get_conversation_history; 허용 목록·인자 검증 |
 | 실제 도구 선택 근거·호출 흐름 문서 | 충족 | 2월 질문→기간 요약 도구→28개·1728.26원/L→최종 답변; README·스크린샷 |
-| GPT Actions 외부 채널 연결 및 실제 호출 검증 | 충족 | 커스텀 GPT에 스키마·Bearer API 키를 연결. Actions 전체 기간 테스트 365개·평균 1680.32원/L, 실제 GPT 대화의 2025-02-01~28 호출 28개·평균 1728.26원/L를 확인. README의 gpt-actions-live-verified.jpg |
+| GPT Actions 외부 채널 연결 및 실제 호출 검증 | 충족 | 커스텀 GPT에 스키마·Bearer API 키를 연결. Actions 전체 기간 테스트 365개·평균 1680.32원/L, 실제 GPT 대화의 2025-02-01~28 호출 28개·평균 1728.26원/L를 확인. README의 gpt-actions-live-verified.png |
 | 추가 지표 1개 이상 | 충족 | 월평균, 기간 변화율, 최근/직전 7일 변화율 |
 | 그래프 1개 | 충족 | 실제 일별 SVG 추세 그래프 |
 | CSV 또는 JSON 다운로드 | 충족 | 실제 CSV 다운로드·365개 파싱 확인 |
