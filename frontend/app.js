@@ -19,7 +19,11 @@ async function api(path,options={}){
   finally{clearTimeout(timeout);}
 }
 function element(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
+function renderChatSummary(s, saved=false){
+  $('chat-summary').textContent=s?.period ? `${saved?'답변 생성 당시 요약':'현재 데이터 요약'}: ${s.period[0]} ~ ${s.period[1]} · ${s.count}개 · 평균 ${fmt(s.metrics.average)}원/리터 · 최근 추세 ${s.trend.status} (기준일 ${s.as_of})` : '저장된 데이터 요약이 없습니다.';
+}
 function renderSummary(s){
+  if(!state.conversation)renderChatSummary(s);
   state.summary=s;$('average').textContent=s.metrics?fmt(s.metrics.average):'—';
   $('minimum').textContent=s.metrics?fmt(s.metrics.min):'—';$('maximum').textContent=s.metrics?fmt(s.metrics.max):'—';
   $('min-date').textContent=s.metrics?s.metrics.min_dates.join(', '):'—';$('max-date').textContent=s.metrics?s.metrics.max_dates.join(', '):'—';
@@ -67,12 +71,12 @@ function showTools(trace){
 }
 async function loadHistory(){
   const box=$('history');try{const rows=await api('/api/conversations');box.replaceChildren();if(!rows.length){box.append(element('p','저장된 대화가 없습니다.','empty'));return;}
-    for(const r of rows){const item=element('div',undefined,'history-item');const open=element('button',r.title,'open');open.disabled=state.busy;open.append(element('small',`${r.message_count}개 메시지`));open.onclick=async()=>{setBusy(true);try{const c=await api('/api/conversations/'+r.id);state.conversation=c.id;$('messages').replaceChildren();for(const m of c.messages)addMessage(m.role,m.content);status('chat-status','이전 대화를 불러왔습니다. 당시 답변의 가격과 현재 데이터가 다를 수 있습니다.');}catch(e){status('chat-status',e.message,true);}finally{setBusy(false);}};
+    for(const r of rows){const item=element('div',undefined,'history-item');const open=element('button',r.title,'open');open.disabled=state.busy;open.append(element('small',`${r.message_count}개 메시지`));open.onclick=async()=>{setBusy(true);try{const c=await api('/api/conversations/'+r.id);state.conversation=c.id;$('messages').replaceChildren();for(const m of c.messages)addMessage(m.role,m.content);renderChatSummary(c.latest_summary,true);showTools(c.latest_tool_trace||[]);status('chat-status','이전 대화를 불러왔습니다. 당시 답변의 가격과 현재 데이터가 다를 수 있습니다.');}catch(e){status('chat-status',e.message,true);}finally{setBusy(false);}};
       const del=element('button','삭제','secondary delete');del.disabled=state.busy;del.setAttribute('aria-label',`${r.title} 대화 삭제`);del.onclick=async()=>{if(!confirm('이 대화를 삭제하시겠습니까?'))return;setBusy(true);try{await api('/api/conversations/'+r.id,{method:'DELETE'});if(state.conversation===r.id)newChat();await loadHistory();}catch(e){status('chat-status',e.message,true);}finally{setBusy(false);}};item.append(open,del);box.append(item);}
   }catch(e){box.replaceChildren(element('p','목록을 불러오지 못했습니다: '+e.message,'caption'));}
 }
-function newChat(){state.conversation=null;$('messages').replaceChildren(element('p','궁금한 가격 흐름을 물어보세요.','empty'));status('chat-status','');$('question').value='';}
-$('chat-form').onsubmit=async e=>{e.preventDefault();if(state.busy)return;const question=$('question').value.trim();if(!question)return;setBusy(true);addMessage('user',question);status('chat-status','가격 요약을 확인하고 답변을 생성하는 중입니다…');try{const result=await api('/api/chat',{method:'POST',body:JSON.stringify({message:question,conversation_id:state.conversation})});addMessage('assistant',result.answer);showTools(result.tool_trace||[]);if(result.saved){state.conversation=result.conversation_id;$('question').value='';status('chat-status','답변과 대화를 저장했습니다.');await loadHistory();}else{status('chat-status',result.warning,true);} }catch(err){status('chat-status',err.message+' 질문은 입력창에 남겨두었습니다.',true);}finally{setBusy(false);}};
+function newChat(){state.conversation=null;renderChatSummary(state.summary);$('messages').replaceChildren(element('p','궁금한 가격 흐름을 물어보세요.','empty'));status('chat-status','');$('question').value='';}
+$('chat-form').onsubmit=async e=>{e.preventDefault();if(state.busy)return;const question=$('question').value.trim();if(!question)return;setBusy(true);addMessage('user',question);status('chat-status','가격 요약을 확인하고 답변을 생성하는 중입니다…');try{const result=await api('/api/chat',{method:'POST',body:JSON.stringify({message:question,conversation_id:state.conversation})});addMessage('assistant',result.answer);renderChatSummary(result.summary,true);showTools(result.tool_trace||[]);if(result.saved){state.conversation=result.conversation_id;$('question').value='';status('chat-status','답변과 대화를 저장했습니다.');await loadHistory();}else{status('chat-status',result.warning,true);} }catch(err){status('chat-status',err.message+' 질문은 입력창에 남겨두었습니다.',true);}finally{setBusy(false);}};
 $('data-form').onsubmit=async e=>{e.preventDefault();if(state.busy)return;const token=$('admin-token').value;if(!token){status('data-status','편집 인증 토큰을 입력하세요.',true);return;}const body={date:$('date').value,value:Number($('value').value),memo:$('memo').value};setBusy(true);try{await api('/api/data'+(state.editing?'/'+state.editing:''),{method:state.editing?'PUT':'POST',headers:{'X-Admin-Token':token},body:JSON.stringify(body)});cancelEdit();status('data-status','기록을 저장했습니다.');await loadData();}catch(err){status('data-status',err.message,true);}finally{setBusy(false);}};
 $('cancel-edit').onclick=cancelEdit;$('new-chat').onclick=newChat;$('refresh-data').onclick=loadData;$('refresh-history').onclick=loadHistory;
 $('prev').onclick=()=>{state.page--;renderRows();};$('next').onclick=()=>{state.page++;renderRows();};
