@@ -103,6 +103,7 @@
         "type": "http",
         "scheme": "bearer"
       }
-    }
+    },
+    "schemas": {}
   }
 }
