@@ -306,7 +306,7 @@ python -m pytest -q
 | `OPENAI_API_KEY` | 백엔드, AI 채팅 | 서버 전용 AI API 키다. 배포 환경은 Codyssey 호환 API 키를 사용한다. |
 | `OPENAI_BASE_URL` | 백엔드, 호환 AI API | `.env.example`의 값은 `https://copa.codyssey.kr/v1`이다. 공식 OpenAI API를 쓰면 이 변수를 제거한다. |
 | `OPENAI_MODEL` | 백엔드, AI 채팅 | API 제공자 계정에서 사용할 수 있는 모델 ID. 배포 환경은 `gpt-5-mini`다. |
-| `CHAT_MAX_COMPLETION_TOKENS` | 백엔드, AI 사용량 제한 | 요청당 출력 한도. 기본값 800, 설정 허용 범위 100~2000. |
+| `CHAT_MAX_COMPLETION_TOKENS` | 백엔드, AI 사용량 제한 | 요청당 출력 한도. 기본값 800, 설정 허용 범위 100–2000. |
 | `CHAT_REQUESTS_PER_MINUTE` | 백엔드, AI 사용량 제한 | 익명 세션별 분당 채팅 요청 한도. 기본값 5, 최대 10. |
 | `CHAT_DAILY_REQUEST_LIMIT` | 백엔드, AI 사용량 제한 | 서비스 전체의 UTC 기준 일일 채팅 요청 한도. 기본값 100, 최대 1000. |
 | `ACTIONS_API_KEY` | Render, GPT Actions 연결 | Actions의 Bearer 인증 키. 관리자 토큰과 별도로 만든다. |
@@ -336,7 +336,7 @@ ID는 YYYY-MM-DD. 날짜 변경은 삭제 후 추가. 날짜 중복은 409, 미�
 data/opinet_2025_original.csv는 사용자가 제공한 원본을 그대로 복사했다.
 출처: 한국석유공사 오피넷, 주유소 평균판매가격 제품별
 https://www.opinet.co.kr/user/dopospdrg/dopOsPdrgSelect.do
-2025-01-01~2025-12-31, 보통휘발유, 전국, 단위 원/리터 (사용자 다운로드 조건).
+2025-01-01–2025-12-31, 보통휘발유, 전국, 단위 원/리터 (사용자 다운로드 조건).
 원본 화면과 전수 대조하지 않았다. 출처 이용조건에 관한 대화 판단은 별도 법률 검증이 아니다.
 가져온 레코드는 원래 가격을 보관하며 값 수정 시 is_modified로 표시한다.
 사용자가 추가한 값은 source=user로 표시한다.
@@ -454,11 +454,11 @@ Function Calling으로 도구 선택을 최대 두 번 수행하고, 필요하�
 최대 2개 도구 실행, 최대 3회 GPT 호출. 허용하지 않은 도구나 잘못된 인자는 실행하지 않는다.
 
 검증한 테스트 시나리오 (모델 응답 대역):
-“2월 평균은?” → get_data_summary(2025-02-01~2025-02-28, reason) → 필터된 통계 → 최종 답변.
+“2월 평균은?” → get_data_summary(2025-02-01–2025-02-28, reason) → 필터된 통계 → 최종 답변.
 위 테스트의 1700원은 테스트 입력 2개 중 2월 기록 1개의 값이며 실제 2025년 2월 평균이 아니다.
 현재 대화 조회의 범위 제한, 임의 delete_data 도구 거부, 두 번 호출 후 도구 선택 중단도 확인했다.
 2026-10-09 실제 Codyssey 호환 GPT 호출 검증: “2025년 2월 1일부터 2월 28일까지의 평균 가격을 기간별 요약 도구로 조회해서 알려줘.”
-모델이 get_data_summary를 선택했고 화면에 선택 근거 “사용자 요청: 2025-02-01~2025-02-28 평균 가격 조회”와 성공·28개 기록을 표시했다.
+모델이 get_data_summary를 선택했고 화면에 선택 근거 “사용자 요청: 2025-02-01–2025-02-28 평균 가격 조회”와 성공·28개 기록을 표시했다.
 최종 답변 평균 1728.26원/L는 배포 요약 API의 2025-02 월평균과 일치한다. 전체 평균 1680.32원/L와 구분했다.
 gpt-5-mini는 사용자 제공 Codyssey 호환 API 예시와 사용 가능한 설정을 따라 선택했다. 모델 간 성능 비교는 하지 않았다.
 
@@ -478,7 +478,7 @@ ACTIONS_PUBLIC_BASE_URL은 실제 배포된 HTTPS 백엔드 주소다.
 2026-10-09: ACTIONS_API_KEY와 ACTIONS_PUBLIC_BASE_URL을 Render 환경 변수로 설정하고 배포 성공을 확인했다.
 실제 HTTPS 검증: /actions/openapi.json 200, 정상 인증의 전체·2월·범위 밖 조회 200, 키 누락·잘못된 키 401, 역전된 날짜 범위 422.
 전체 365개 평균 1680.32, 2월 28개 평균 1728.26, 범위 밖 count=0. [검증 결과](actions-api-verification.json).
-이후 GPT 편집기에서 스키마를 가져오고 Bearer API 키 인증을 연결했다. Actions의 전체 기간 테스트에서 365개 평균 1680.32원/L를 반환했고, 저장한 GPT의 실제 대화에서 2025-02-01~2025-02-28 조회를 실행해 28개 평균 1728.26원/L로 답했다. 조회 기간·단위·최근 데이터 기준일을 화면에서 확인했다. 실제 대화 증거는 [GPT Actions 실제 호출 화면](gpt-actions-live-verified.png)이다. 비밀 키는 스크린샷과 저장소에 포함하지 않았다.
+이후 GPT 편집기에서 스키마를 가져오고 Bearer API 키 인증을 연결했다. Actions의 전체 기간 테스트에서 365개 평균 1680.32원/L를 반환했고, 저장한 GPT의 실제 대화에서 2025-02-01–2025-02-28 조회를 실행해 28개 평균 1728.26원/L로 답했다. 조회 기간·단위·최근 데이터 기준일을 화면에서 확인했다. 실제 대화 증거는 [GPT Actions 실제 호출 화면](gpt-actions-live-verified.png)이다. 비밀 키는 스크린샷과 저장소에 포함하지 않았다.
 
 API 호출 방식 참고:
 https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
