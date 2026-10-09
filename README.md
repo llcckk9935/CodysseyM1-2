@@ -36,7 +36,23 @@ flowchart LR
 
 ## 실행 (Python 3.10 이상)
 
-아래는 저장소 루트에서 시작하는 순서다. **각 코드 블록에는 명령 한 줄만** 있으므로 한 블록씩 복사해 실행한다.
+Python 3.10 이상이 필요하다. 설치되어 있지 않다면 먼저 [Windows 공식 설치 안내](https://docs.python.org/3/using/windows.html) 또는 [macOS 공식 설치 안내](https://docs.python.org/3/using/mac.html)를 따라 설치한다. Linux는 사용하는 배포판의 패키지 관리자로 설치한다.
+
+저장소가 아직 컴퓨터에 없다면 먼저 복제한다.
+
+```bash
+git clone https://github.com/llcckk9935/CodysseyM1-2.git
+```
+
+복제한 저장소 폴더로 이동한다.
+
+```text
+cd CodysseyM1-2
+```
+
+이미 저장소를 받았다면 이 두 단계는 건너뛰고, 터미널의 현재 위치를 저장소 루트로 맞춘다.
+
+아래 명령은 저장소 루트에서 시작하는 순서다. 첫 `cd backend`는 백엔드 폴더로 이동하며, 뒤의 `pip install` 명령이 프로젝트 패키지를 설치한다. **각 코드 블록에는 명령 한 줄만** 있으므로 한 블록씩 복사해 실행한다.
 
 ### Windows PowerShell
 
@@ -61,7 +77,7 @@ python -m venv .venv
 환경 변수 파일을 처음 만든다. 이미 `.env`가 있으면 이 단계는 건너뛴다.
 
 ```powershell
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 ### macOS / Linux
