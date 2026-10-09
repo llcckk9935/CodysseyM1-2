@@ -35,22 +35,88 @@ flowchart LR
 브라우저는 Vercel에서 화면을 받고 Render API와 직접 통신한다. Render는 요청을 검증하고 Firestore에서 데이터를 읽거나 저장하며, 채팅 요청에는 계산한 요약을 GPT 프롬프트에 넣어 답변을 만든다. GPT Actions는 같은 백엔드의 읽기 전용 요약 API를 호출한다. 비밀 키와 서비스 계정 정보는 Render에만 두고, 프론트엔드에는 공개 API 주소만 설정한다.
 
 ## 실행 (Python 3.10 이상)
-```bash
+
+아래 명령은 저장소 루트 폴더에서 실행한다. 사용하는 운영체제에 맞는 블록을 순서대로 복사한다.
+
+### Windows PowerShell
+
+가상환경을 만들고 개발 패키지를 설치한다.
+
+```powershell
 cd backend
 python -m venv .venv
-# Linux/macOS
-source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
-cp .env.example .env
-# Windows: Copy-Item .env.example .env
-# .env에 실제 Firestore 키, 허용 프론트 주소와 편집 인증 토큰 입력
-uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+Copy-Item .env.example .env
 ```
-Swagger: http://127.0.0.1:8000/docs
-테스트: `python -m pytest -q` (실제 Firestore 대신 테스트 전용 저장소 사용).
-초기 가져오기: `python import_csv.py ../data/opinet_2025_original.csv`
-전체 파일 검증 후 날짜별로 생성한다. 기존 날짜는 건너뛰며 재실행해도 덮어쓰지 않는다.
+
+### macOS / Linux
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+cp .env.example .env
+```
+
+`.env` 파일에 Firestore 인증 정보, 허용 프론트 주소, 편집 토큰과 사용할 AI API 설정을 입력한다. 실제 비밀 값을 README나 GitHub에 올리지 않는다.
+
+`backend` 폴더에서 백엔드 개발 서버를 실행한다. 실행 중인 터미널을 열어 둔다.
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+macOS / Linux:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+Swagger UI: http://127.0.0.1:8000/docs
+
+### 테스트 실행
+
+새 터미널에서 저장소 루트 기준으로 실행한다.
+
+Windows PowerShell:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+macOS / Linux:
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m pytest -q
+```
+
+테스트는 실제 Firestore 대신 테스트 전용 저장소를 사용한다.
+
+### 원본 CSV 초기 가져오기
+
+`.env`에 Firestore 인증을 설정한 뒤 `backend` 폴더에서 실행한다. 기존 날짜는 건너뛰며 덮어쓰지 않는다.
+
+Windows PowerShell:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe import_csv.py ../data/opinet_2025_original.csv
+```
+
+macOS / Linux:
+
+```bash
+cd backend
+source .venv/bin/activate
+python import_csv.py ../data/opinet_2025_original.csv
+```
+
 2026-10-09: 실제 Firestore에 원본 데이터 365개를 저장하고 배포 API 요약 응답을 확인했다.
 
 ## 설정
@@ -118,10 +184,14 @@ Vercel 프로젝트 Root Directory는 frontend로 설정하고 API_BASE_URL에 R
 build.mjs가 환경 변수를 config.js로 내보낸다. 이 값은 공개되는 서버 주소이며 비밀 키를 넣으면 안 된다.
 
 ## 프론트 로컬 실행
+
+백엔드 서버를 실행해 둔 상태에서 새 터미널을 열고 저장소 루트에서 실행한다.
+
 ```bash
 cd frontend
 python -m http.server 3000
 ```
+
 http://localhost:3000 에 접속한다. 기본 API 주소는 http://127.0.0.1:8000.
 백엔드 ALLOWED_ORIGINS에 http://localhost:3000을 설정한다.
 127.0.0.1:3000으로 화면에 접속하면 그 주소도 별도로 허용해야 한다.
