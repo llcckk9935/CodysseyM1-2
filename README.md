@@ -191,8 +191,10 @@ Authorization: Bearer 인증에 별도 ACTIONS_API_KEY를 사용한다.
 ACTIONS_PUBLIC_BASE_URL은 실제 배포된 HTTPS 백엔드 주소다.
 /actions/openapi.json은 공개할 조회 API 한 개만 포함하며 키 값은 포함하지 않는다.
 상세 설정·검증 절차: docs/gpt-actions-setup.md. 미션 요구사항 재점검: [mission-audit.md](mission-audit.md).
-2026-10-09 재확인: GPT 편집기는 이 작업 브라우저에서 새로고침 후에도 빈 화면이었다. ACTIONS 키·공개 스키마 주소 환경 변수 설정 및 실제 외부 호출 검증이 남아 있다.
-/actions/openapi.json은 아직 503이며 이 상태를 연결 성공으로 기록하지 않는다.
+2026-10-09: ACTIONS_API_KEY와 ACTIONS_PUBLIC_BASE_URL을 Render 환경 변수로 설정하고 배포 성공을 확인했다.
+실제 HTTPS 검증: /actions/openapi.json 200, 정상 인증의 전체·2월·범위 밖 조회 200, 키 누락·잘못된 키 401, 역전된 날짜 범위 422.
+전체 365개 평균 1680.32, 2월 28개 평균 1728.26, 범위 밖 count=0. [검증 결과](actions-api-verification.json).
+이는 Python HTTP 클라이언트로 수행한 서버 검증이다. GPT 편집기는 작업 브라우저에서 계속 빈 화면이며 ChatGPT Actions 인증 연결·모델의 외부 호출과 답변 검증은 아직 완료하지 못했다.
 실제 외부 클라이언트 호출 검증 전이므로 보너스 과제 완료로 간주하지 않는다.
 
 API 호출 방식 참고:

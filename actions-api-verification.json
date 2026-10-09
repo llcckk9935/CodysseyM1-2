@@ -1,0 +1,56 @@
+[
+  {
+    "name": "schema",
+    "http": 200,
+    "server": [
+      {
+        "url": "https://codysseym1-2-k5mi.onrender.com"
+      }
+    ],
+    "paths": [
+      "/api/actions/summary"
+    ]
+  },
+  {
+    "name": "all",
+    "http": 200,
+    "count": 365,
+    "average": 1680.32,
+    "detail": null
+  },
+  {
+    "name": "february",
+    "http": 200,
+    "count": 28,
+    "average": 1728.26,
+    "detail": null
+  },
+  {
+    "name": "empty",
+    "http": 200,
+    "count": 0,
+    "average": null,
+    "detail": null
+  },
+  {
+    "name": "missing_key",
+    "http": 401,
+    "count": null,
+    "average": null,
+    "detail": "Actions 인증이 필요합니다."
+  },
+  {
+    "name": "invalid_key",
+    "http": 401,
+    "count": null,
+    "average": null,
+    "detail": "Actions 인증이 필요합니다."
+  },
+  {
+    "name": "invalid_period",
+    "http": 422,
+    "count": null,
+    "average": null,
+    "detail": "시작일은 종료일보다 늦을 수 없습니다."
+  }
+]

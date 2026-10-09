@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | Function Calling 스키마·도구 연결 | 충족 | get_data_summary, get_conversation_history; 허용 목록·인자 검증 |
 | 실제 도구 선택 근거·호출 흐름 문서 | 충족 | 2월 질문→기간 요약 도구→28개·1728.26원/L→최종 답변; README·스크린샷 |
-| MCP 또는 GPT Actions 외부 채널 연결 검증 | 미완료 | 사용자는 GPT Actions를 지정. 편집기가 현재 작업 브라우저에서 빈 화면. Actions 환경 변수·GPT 연결·실제 호출 증거 필요 |
+| MCP 또는 GPT Actions 외부 채널 연결 검증 | 미완료 | 사용자는 GPT Actions를 지정. 편집기가 현재 작업 브라우저에서 빈 화면. Actions 환경 변수·API 인증 응답 검증은 완료. GPT 연결·실제 호출 증거 필요 |
 | 추가 지표 1개 이상 | 충족 | 월평균, 기간 변화율, 최근/직전 7일 변화율 |
 | 그래프 1개 | 충족 | 실제 일별 SVG 추세 그래프 |
 | CSV 또는 JSON 다운로드 | 충족 | 실제 CSV 다운로드·365개 파싱 확인 |
@@ -53,12 +53,13 @@ CORS 허용 도메인과 공개 API 서버 URL은 비밀 API 키와 구분한다
 - pytest 18 passed, JavaScript 문법 검사 및 Vercel 환경 변수 기반 빌드 성공.
 - 배포 /health·/api/data/summary·/openapi.json HTTP 200.
 - 2월 평균 1728.26, 기록 28개를 실제 GPT 답변과 배포 요약 월평균으로 대조.
-- GPT 편집기 새로고침 1회 후에도 빈 화면. /actions/openapi.json은 환경 변수 미설정으로 503.
+- GPT 편집기 새로고침 1회 후에도 빈 화면. Actions 전용 키·공개 주소 설정 및 배포 완료.
+- Python HTTP 클라이언트로 스키마 200, 전체/2월/범위 밖 조회 200, 키 누락/오류 401, 날짜 역전 422 확인. actions-api-verification.json에 비밀 값 없이 결과 저장.
 - 모바일 자동 테스트는 미실행. 필수 과제에는 모바일 자동 테스트가 지정되어 있지 않다.
 
 ## GPT Actions 완료 조건
 
-1. ACTIONS_PUBLIC_BASE_URL 및 별도 읽기 전용 ACTIONS_API_KEY를 Render에 설정.
+1. 완료: ACTIONS_PUBLIC_BASE_URL 및 별도 읽기 전용 ACTIONS_API_KEY를 Render에 설정하고 실제 HTTP 응답 검증.
 2. GPT 편집기에서 스키마 가져오기·Bearer 인증 연결.
 3. 실제 ChatGPT의 전체 기간·2월·범위 밖 요청 결과를 확인하고 API 로그·답변·스크린샷 기록.
 4. Actions 문서와 이 점검표를 실제 증거로 갱신.
