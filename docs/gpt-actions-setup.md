@@ -1,10 +1,8 @@
 # GPT Actions 설정 및 검증
 
-현재 상태 (2026-10-09): 백엔드 배포와 실제 Firestore 요약 및 웹 Function Calling 검증 완료.
-Actions 전용 환경 변수 설정·배포·실제 HTTP 클라이언트 검증 완료. ChatGPT Actions 연결·실제 모델 호출은 미완료.
-GPT 편집기는 현재 작업 브라우저에서 새로고침 후에도 빈 화면이어서 연결 작업을 진행하지 못했다.
+현재 상태 (2026-10-09): 백엔드 배포와 실제 Firestore 요약, 웹 Function Calling, ChatGPT GPT Actions 호출 검증 완료.
 /actions/openapi.json은 HTTP 200이며 읽기 API 하나와 Bearer 인증 스키마만 제공한다.
-API 테스트 대역의 성공을 실제 GPT Actions 연결 성공으로 기재하지 않는다.
+테스트 대역 성공과 실제 GPT Actions 호출은 분리해 기록한다.
 
 ## 준비
 1. 백엔드를 Render HTTPS 주소에 배포하고 Firestore 원본 데이터를 가져온다.
@@ -39,8 +37,7 @@ API 테스트 대역의 성공을 실제 GPT Actions 연결 성공으로 기재�
 
 실제 서버 검증 (Python HTTP 클라이언트): 전체 365개·1680.32, 2월 28개·1728.26, 범위 밖 0개는 HTTP 200. 키 누락·오류 401, 날짜 역전 422.
 결과: ../actions-api-verification.json. 공개 스키마 사본: actions-openapi.json. 키 값은 포함하지 않는다.
-현재 실제 ChatGPT GPT Actions 실행 증거: 없음. 연결 후 이 문서에 실제 실행 결과를 추가한다.
-웹 Function Calling은 2월 28개 기록·평균 1728.26원/L·선택 근거 표시를 실제 검증했다. 이것은 ChatGPT Actions 검증을 대체하지 않는다.
+2026-10-09 ChatGPT GPT Actions 실제 검증: 편집기에서 전체 기간을 호출해 365개·평균 1680.32원/L를 반환했다. 저장된 비공개 GPT와의 대화에서 2025-02-01~2025-02-28을 질문해 Action이 28개 기록의 평균 1728.26원/L, 조회 기간·최저·최고와 기준일을 포함한 답변을 반환하는 것을 확인했다. 제출용 화면은 `../gpt-actions-live-verified.jpg`이다. 별도 Function Calling 검증과 구분한다.
 대화 기록·데이터 편집 API는 외부 Actions 스키마에 노출하지 않는다.
 같은 가격 요약 계산 서비스가 웹 채팅의 get_data_summary와 외부 getFuelPriceSummary에 사용된다.
 
