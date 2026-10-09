@@ -36,32 +36,67 @@ flowchart LR
 
 ## 실행 (Python 3.10 이상)
 
-아래 명령은 저장소 루트 폴더에서 실행한다. 사용하는 운영체제에 맞는 블록을 순서대로 복사한다.
+아래는 저장소 루트에서 시작하는 순서다. **각 코드 블록에는 명령 한 줄만** 있으므로 한 블록씩 복사해 실행한다.
 
 ### Windows PowerShell
 
-가상환경을 만들고 개발 패키지를 설치한다.
+백엔드 폴더로 이동한다.
 
 ```powershell
 cd backend
+```
+
+가상환경을 만든다.
+
+```powershell
 python -m venv .venv
+```
+
+가상환경에 패키지를 설치한다.
+
+```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+```
+
+환경 변수 파일을 처음 만든다. 이미 `.env`가 있으면 이 단계는 건너뛴다.
+
+```powershell
 Copy-Item .env.example .env
 ```
 
 ### macOS / Linux
 
+백엔드 폴더로 이동한다.
+
 ```bash
 cd backend
+```
+
+가상환경을 만들고 활성화한다.
+
+```bash
 python3 -m venv .venv
+```
+
+```bash
 source .venv/bin/activate
+```
+
+가상환경에 패키지를 설치한다.
+
+```bash
 python -m pip install -r requirements-dev.txt
-cp .env.example .env
+```
+
+환경 변수 파일을 처음 만든다. 이미 `.env`가 있으면 이 단계는 건너뛴다.
+
+```bash
+cp -n .env.example .env
 ```
 
 `.env` 파일에 Firestore 인증 정보, 허용 프론트 주소, 편집 토큰과 사용할 AI API 설정을 입력한다. 실제 비밀 값을 README나 GitHub에 올리지 않는다.
 
-`backend` 폴더에서 백엔드 개발 서버를 실행한다. 실행 중인 터미널을 열어 둔다.
+백엔드 폴더에서 서버를 실행하고 터미널을 열어 둔다.
 
 Windows PowerShell:
 
@@ -79,20 +114,27 @@ Swagger UI: http://127.0.0.1:8000/docs
 
 ### 테스트 실행
 
-새 터미널에서 저장소 루트 기준으로 실행한다.
+새 터미널에서 저장소 루트부터 시작한다. 먼저 백엔드 폴더로 이동한다.
 
-Windows PowerShell:
+```text
+cd backend
+```
+
+Windows PowerShell에서는 다음 명령을 실행한다.
 
 ```powershell
-cd backend
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-macOS / Linux:
+macOS / Linux에서는 먼저 가상환경을 활성화한다.
 
 ```bash
-cd backend
 source .venv/bin/activate
+```
+
+그다음 테스트를 실행한다.
+
+```bash
 python -m pytest -q
 ```
 
@@ -100,20 +142,27 @@ python -m pytest -q
 
 ### 원본 CSV 초기 가져오기
 
-`.env`에 Firestore 인증을 설정한 뒤 `backend` 폴더에서 실행한다. 기존 날짜는 건너뛰며 덮어쓰지 않는다.
+`.env`에 Firestore 인증을 설정한 뒤 새 터미널에서 저장소 루트부터 시작한다. 백엔드 폴더로 이동한다.
+
+```text
+cd backend
+```
 
 Windows PowerShell:
 
 ```powershell
-cd backend
 .\.venv\Scripts\python.exe import_csv.py ../data/opinet_2025_original.csv
 ```
 
-macOS / Linux:
+macOS / Linux에서는 가상환경을 활성화한다.
 
 ```bash
-cd backend
 source .venv/bin/activate
+```
+
+그다음 가져오기를 실행한다. 기존 날짜는 건너뛰며 덮어쓰지 않는다.
+
+```bash
 python import_csv.py ../data/opinet_2025_original.csv
 ```
 
@@ -185,11 +234,22 @@ build.mjs가 환경 변수를 config.js로 내보낸다. 이 값은 공개되는
 
 ## 프론트 로컬 실행
 
-백엔드 서버를 실행해 둔 상태에서 새 터미널을 열고 저장소 루트에서 실행한다.
+백엔드 서버를 실행해 둔 상태에서 새 터미널을 연다. 저장소 루트에서 프론트엔드 폴더로 이동한다.
+
+```text
+cd frontend
+```
+
+Windows PowerShell:
+
+```powershell
+python -m http.server 3000
+```
+
+macOS / Linux:
 
 ```bash
-cd frontend
-python -m http.server 3000
+python3 -m http.server 3000
 ```
 
 http://localhost:3000 에 접속한다. 기본 API 주소는 http://127.0.0.1:8000.
