@@ -6,7 +6,7 @@ GPT 요약 기반 채팅 호출 코드, 대화 자동/수동 저장·목록·불
 바닐라 웹 화면·SVG 가격 그래프·CSV 다운로드·다크 모드.
 Function Calling 및 GPT Actions용 읽기 API·스키마 생성기 구현.
 필수 기능 중 실제 데이터 조회·AI 채팅·대화 자동 저장과 불러오기·양쪽 배포를 확인했다.
-데이터 편집 인증 설정과 웹에서 추가·수정·삭제 검증을 완료했다. 선택 과제인 GPT Actions 외부 연결은 아직 검증하지 않았다.
+데이터 편집 인증 설정과 웹에서 추가·수정·삭제 검증을 완료했다. 2026-10-09에는 ChatGPT GPT Actions에 읽기 전용 요약 API를 연결하고, 실제 GPT 대화에서 기간별 기록 조회와 답변까지 확인했다.
 
 ## 기술 스택
 
@@ -194,8 +194,7 @@ ACTIONS_PUBLIC_BASE_URL은 실제 배포된 HTTPS 백엔드 주소다.
 2026-10-09: ACTIONS_API_KEY와 ACTIONS_PUBLIC_BASE_URL을 Render 환경 변수로 설정하고 배포 성공을 확인했다.
 실제 HTTPS 검증: /actions/openapi.json 200, 정상 인증의 전체·2월·범위 밖 조회 200, 키 누락·잘못된 키 401, 역전된 날짜 범위 422.
 전체 365개 평균 1680.32, 2월 28개 평균 1728.26, 범위 밖 count=0. [검증 결과](actions-api-verification.json).
-이는 Python HTTP 클라이언트로 수행한 서버 검증이다. GPT 편집기는 작업 브라우저에서 계속 빈 화면이며 ChatGPT Actions 인증 연결·모델의 외부 호출과 답변 검증은 아직 완료하지 못했다.
-실제 외부 클라이언트 호출 검증 전이므로 보너스 과제 완료로 간주하지 않는다.
+이후 GPT 편집기에서 스키마를 가져오고 Bearer API 키 인증을 연결했다. Actions의 전체 기간 테스트에서 365개 평균 1680.32원/L를 반환했고, 저장한 GPT의 실제 대화에서 2025-02-01~2025-02-28 조회를 실행해 28개 평균 1728.26원/L로 답했다. 조회 기간·단위·최근 데이터 기준일을 화면에서 확인했다. 실제 대화 증거는 [GPT Actions 실제 호출 화면](gpt-actions-live-verified.png)이다. 비밀 키는 스크린샷과 저장소에 포함하지 않았다.
 
 API 호출 방식 참고:
 https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
@@ -211,5 +210,7 @@ https://developers.openai.com/api/reference/resources/chat/subresources/completi
 ![실제 Function Calling 선택 근거](function-calling-verified.jpg)
 
 ![데이터 수정 저장 성공](data-crud-success.jpg)
+
+![ChatGPT GPT Actions 기간 조회 성공](gpt-actions-live-verified.png)
 
 관리자 토큰은 Render의 ADMIN_API_TOKEN을 확인하여 웹의 편집 인증 설정에 입력한다. 공개 문서·프론트 코드에는 토큰을 싣지 않는다.
