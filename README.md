@@ -8,6 +8,11 @@ Function Calling 및 GPT Actions용 읽기 API·스키마 생성기 구현.
 필수 기능 중 실제 데이터 조회·AI 채팅·대화 자동 저장과 불러오기·양쪽 배포를 확인했다.
 데이터 편집 인증 설정과 웹에서 추가·수정·삭제 검증을 완료했다. 선택 과제인 GPT Actions 외부 연결은 아직 검증하지 않았다.
 
+## 기술 스택
+
+Python 3.12 · FastAPI · Pydantic · Uvicorn · firebase-admin / Firestore · OpenAI Python SDK · python-dotenv.
+프론트는 HTML/CSS/JavaScript와 SVG를 사용하며 프레임워크를 사용하지 않는다. Render와 Vercel에 배포했다.
+
 ## 실행 (Python 3.10 이상)
 ```bash
 cd backend
@@ -37,7 +42,7 @@ Swagger: http://127.0.0.1:8000/docs
 - CHAT_MAX_COMPLETION_TOKENS: 기본 800, 100~2000으로 제한. 배포값 2000. 800 설정에서 미완료 응답이 발생해 늘렸다.
 - CHAT_REQUESTS_PER_MINUTE: 세션별 UTC 분당 시도 한도, 기본 5 (최대 10).
 - CHAT_DAILY_REQUEST_LIMIT: 서비스 전체 UTC 일별 시도 한도, 기본 100 (최대 1000).
-- API_BASE_URL: 다음 단계 프론트 빌드 설정용.
+- API_BASE_URL: Vercel 프론트 빌드 시 백엔드 주소를 지정한다.
 
 ## API
 - POST /api/data: date, value, memo 추가 (편집 인증 필요).
@@ -66,6 +71,15 @@ https://www.opinet.co.kr/user/dopospdrg/dopOsPdrgSelect.do
 원본 화면과 전수 대조하지 않았다. 출처 이용조건에 관한 대화 판단은 별도 법률 검증이 아니다.
 가져온 레코드는 원래 가격을 보관하며 값 수정 시 is_modified로 표시한다.
 사용자가 추가한 값은 source=user로 표시한다.
+
+## 구조와 설계 기준
+
+`app/main.py`는 앱 초기화·CORS·라우터 등록을 담당한다. `routers/`는 HTTP 요청·인증·응답 오류, `services/`는 통계 계산·GPT 호출·도구 실행을 담당한다.
+`repository.py`와 `conversations.py`는 Firestore 저장을 분리해 통계 계산과 API 테스트를 DB 없이 검증할 수 있게 했다.
+Pydantic 모델은 날짜·양수 가격·소수 자릿수·문자열 길이·허용 필드를 검증하고 오류를 422로 반환한다.
+`data`에는 날짜별 레코드를, `conversations`에는 messages와 당시 요약·도구 흔적을, `chat_limits`에는 요청 한도를 저장한다.
+컨텍스트 주입은 DB에서 계산한 요약을 시스템 메시지에 포함하는 방식이다. 모델을 새로 학습시키는 과정은 없다.
+CORS는 프론트 도메인의 브라우저 요청을 허용하는 설정이다. 서버 비밀 키는 Render 환경 변수로만 관리하며, Vercel API_BASE_URL은 공개 서버 주소다.
 
 ## 참조 문서
 https://fastapi.tiangolo.com/tutorial/testing/
@@ -159,7 +173,10 @@ Function Calling으로 도구 선택을 최대 두 번 수행하고, 필요하�
 “2월 평균은?” → get_data_summary(2025-02-01~2025-02-28, reason) → 필터된 통계 → 최종 답변.
 위 테스트의 1700원은 테스트 입력 2개 중 2월 기록 1개의 값이며 실제 2025년 2월 평균이 아니다.
 현재 대화 조회의 범위 제한, 임의 delete_data 도구 거부, 두 번 호출 후 도구 선택 중단도 확인했다.
-실제 GPT 호출 사례 및 모델 선택 근거 기록은 아직 없다.
+2026-10-09 실제 Codyssey 호환 GPT 호출 검증: “2025년 2월 1일부터 2월 28일까지의 평균 가격을 기간별 요약 도구로 조회해서 알려줘.”
+모델이 get_data_summary를 선택했고 화면에 선택 근거 “사용자 요청: 2025-02-01~2025-02-28 평균 가격 조회”와 성공·28개 기록을 표시했다.
+최종 답변 평균 1728.26원/L는 배포 요약 API의 2025-02 월평균과 일치한다. 전체 평균 1680.32원/L와 구분했다.
+gpt-5-mini는 사용자 제공 Codyssey 호환 API 예시와 사용 가능한 설정을 따라 선택했다. 모델 간 성능 비교는 하지 않았다.
 
 호출 흐름:
 1. 사용자 질문과 전체 요약을 GPT에 전달.
@@ -173,7 +190,9 @@ Function Calling으로 도구 선택을 최대 두 번 수행하고, 필요하�
 Authorization: Bearer 인증에 별도 ACTIONS_API_KEY를 사용한다.
 ACTIONS_PUBLIC_BASE_URL은 실제 배포된 HTTPS 백엔드 주소다.
 /actions/openapi.json은 공개할 조회 API 한 개만 포함하며 키 값은 포함하지 않는다.
-상세 설정·검증 절차: docs/gpt-actions-setup.md.
+상세 설정·검증 절차: docs/gpt-actions-setup.md. 미션 요구사항 재점검: [mission-audit.md](mission-audit.md).
+2026-10-09 재확인: GPT 편집기는 이 작업 브라우저에서 새로고침 후에도 빈 화면이었다. ACTIONS 키·공개 스키마 주소 환경 변수 설정 및 실제 외부 호출 검증이 남아 있다.
+/actions/openapi.json은 아직 503이며 이 상태를 연결 성공으로 기록하지 않는다.
 실제 외부 클라이언트 호출 검증 전이므로 보너스 과제 완료로 간주하지 않는다.
 
 API 호출 방식 참고:
@@ -186,6 +205,8 @@ https://developers.openai.com/api/reference/resources/chat/subresources/completi
 ![데이터 요약과 그래프](data-summary.jpg)
 
 ![실제 AI 질문과 답변 및 대화 불러오기](conversation-load.jpg)
+
+![실제 Function Calling 선택 근거](function-calling-verified.jpg)
 
 ![데이터 수정 저장 성공](data-crud-success.jpg)
 
