@@ -10,8 +10,16 @@ Function Calling 및 GPT Actions용 읽기 API·스키마 생성기 구현.
 
 ## 기술 스택
 
-Python 3.12 · FastAPI · Pydantic · Uvicorn · firebase-admin / Firestore · OpenAI Python SDK · python-dotenv.
-프론트는 HTML/CSS/JavaScript와 SVG를 사용하며 프레임워크를 사용하지 않는다. Render와 Vercel에 배포했다.
+| 구분 | 기술 | 역할 |
+| --- | --- | --- |
+| 언어 | Python 3.12 | 백엔드 API와 데이터 처리 |
+| 백엔드 | FastAPI, Uvicorn | REST API와 애플리케이션 서버 |
+| 입력 검증 | Pydantic | 요청 데이터의 형식과 범위 검증 |
+| 데이터베이스 | Firebase Admin SDK, Cloud Firestore | 시계열 데이터와 대화 기록 저장 |
+| AI 연동 | OpenAI Python SDK | 요약 정보를 활용한 AI 채팅 및 도구 호출 |
+| 환경 설정 | python-dotenv | 로컬 환경 변수 불러오기 |
+| 프론트엔드 | HTML, CSS, JavaScript, SVG | 프레임워크 없이 화면·차트 구현 |
+| 배포 | Render, Vercel | 백엔드 API와 프론트엔드 호스팅 |
 
 ## 실행 (Python 3.10 이상)
 ```bash
