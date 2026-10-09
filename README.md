@@ -21,6 +21,19 @@ Function Calling 및 GPT Actions용 읽기 API·스키마 생성기 구현.
 | 프론트엔드 | HTML, CSS, JavaScript, SVG | 프레임워크 없이 화면·차트 구현 |
 | 배포 | Render, Vercel | 백엔드 API와 프론트엔드 호스팅 |
 
+## 아키텍처 한눈에 보기
+
+```mermaid
+flowchart LR
+    user[사용자 브라우저] -->|화면 요청| web[Vercel<br/>HTML · CSS · JavaScript]
+    user -->|REST API · 익명 세션 토큰| api[Render<br/>FastAPI · 라우터 · 서비스]
+    gpt[ChatGPT 커스텀 GPT] -->|GPT Actions · Bearer 인증| api
+    api <-->|데이터 · 대화 · 요청 한도| db[(Firestore<br/>data · conversations · chat_limits)]
+    api <-->|프롬프트 · 답변 · 도구 호출| model[OpenAI 호환 GPT API]
+```
+
+브라우저는 Vercel에서 화면을 받고 Render API와 직접 통신한다. Render는 요청을 검증하고 Firestore에서 데이터를 읽거나 저장하며, 채팅 요청에는 계산한 요약을 GPT 프롬프트에 넣어 답변을 만든다. GPT Actions는 같은 백엔드의 읽기 전용 요약 API를 호출한다. 비밀 키와 서비스 계정 정보는 Render에만 두고, 프론트엔드에는 공개 API 주소만 설정한다.
+
 ## 실행 (Python 3.10 이상)
 ```bash
 cd backend
