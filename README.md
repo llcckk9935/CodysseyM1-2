@@ -34,33 +34,60 @@ flowchart LR
 
 브라우저는 Vercel에서 화면을 받고 Render API와 직접 통신한다. Render는 요청을 검증하고 Firestore에서 데이터를 읽거나 저장하며, 채팅 요청에는 계산한 요약을 GPT 프롬프트에 넣어 답변을 만든다. GPT Actions는 같은 백엔드의 읽기 전용 요약 API를 호출한다. 비밀 키와 서비스 계정 정보는 Render에만 두고, 프론트엔드에는 공개 API 주소만 설정한다.
 
-## 실행 (Python 3.10 이상)
+## 처음 실행하기
 
-Python 3.10 이상이 필요하다. 설치되어 있지 않다면 먼저 [Windows 공식 설치 안내](https://docs.python.org/3/using/windows.html) 또는 [macOS 공식 설치 안내](https://docs.python.org/3/using/mac.html)를 따라 설치한다. Linux는 사용하는 배포판의 패키지 관리자로 설치한다.
+처음 설치할 때 필요한 것과 순서를 먼저 확인한 뒤 아래 단계를 따라간다. **각 터미널 코드 블록은 한 줄짜리 명령**이므로 위에서 아래로 한 줄씩 복사해 실행한다.
 
-저장소가 아직 컴퓨터에 없다면 먼저 복제한다.
+### 1. 준비물 확인
+
+- **Python 3.10 이상**: 설치되어 있지 않다면 [Windows 공식 설치 안내](https://docs.python.org/3/using/windows.html) 또는 [macOS 공식 설치 안내](https://docs.python.org/3/using/mac.html)를 따른다. Linux는 배포판의 패키지 관리자로 설치한다.
+- **Git**: 아래 `git clone`으로 받을 때 필요하다. Git이 없다면 [공식 설치 페이지](https://git-scm.com/install/)에서 설치한다. 또는 GitHub에서 ZIP을 내려받아 압축을 풀어도 된다.
+- **Firebase 프로젝트와 Firestore**: Firebase Console에서 프로젝트를 만든 다음 **빌드 → Firestore Database → 데이터베이스 만들기**를 선택한다. 프로젝트 설정의 **서비스 계정** 화면에서 새 비공개 키(JSON)를 발급한다. 이 JSON은 서버가 Firestore에 접속할 때 쓰는 비밀번호와 같으므로 안전한 곳에 보관하고 저장소에는 넣지 않는다.
+- **AI API 키와 모델 ID**: API 제공자 계정에서 발급받는다. API 호출은 사용량에 따라 비용이 들 수 있으므로 사용 가능한 모델과 한도를 먼저 확인한다.
+- **배포할 때만 필요한 것**: GitHub 저장소, Render 계정, Vercel 계정이 필요하다. 로컬에서 실행하거나 테스트만 할 때는 Render/Vercel 계정이 없어도 된다. 배포 환경 변수와 순서는 [배포 문서](docs/deployment.md)를 참고한다.
+
+프로젝트 패키지는 아래에서 `requirements-dev.txt`를 설치할 때 가상환경에 들어간다. Python 설치와 프로젝트 패키지 설치는 서로 다른 단계다.
+화면과 실제 데이터를 실행할 때는 Firebase 설정이 필요하고, AI 채팅에는 AI API 키와 모델 설정도 필요하다. **자동 테스트만 실행하려는 경우에는 Firebase 계정과 AI 키를 준비하지 않아도 된다.**
+
+### 2. Python 버전 확인
+
+Python 설치 후 새 터미널을 열어 버전을 확인한다. 3.10 이상이어야 한다.
+
+Windows PowerShell:
+
+```powershell
+python --version
+```
+
+macOS / Linux:
+
+```bash
+python3 --version
+```
+
+### 3. 프로젝트 폴더 준비
+
+이미 저장소를 받았다면 이 단계를 건너뛰고 터미널에서 프로젝트 폴더를 연다. 아직 받지 않았다면 저장소 루트의 상위 폴더에서 복제한다.
 
 ```bash
 git clone https://github.com/llcckk9935/CodysseyM1-2.git
 ```
 
-복제한 저장소 폴더로 이동한다.
+복제한 폴더로 이동한다.
 
 ```text
 cd CodysseyM1-2
 ```
 
-이미 저장소를 받았다면 이 두 단계는 건너뛰고, 터미널의 현재 위치를 저장소 루트로 맞춘다.
+### 4. 가상환경과 패키지 설치
 
-아래 명령은 저장소 루트에서 시작하는 순서다. 첫 `cd backend`는 백엔드 폴더로 이동하며, 뒤의 `pip install` 명령이 프로젝트 패키지를 설치한다. **각 코드 블록에는 명령 한 줄만** 있으므로 한 블록씩 복사해 실행한다.
+이제부터는 저장소 루트에서 시작한다. 먼저 백엔드 폴더로 이동한다.
 
-### Windows PowerShell
-
-백엔드 폴더로 이동한다.
-
-```powershell
+```text
 cd backend
 ```
+
+#### Windows PowerShell
 
 가상환경을 만든다.
 
@@ -68,97 +95,86 @@ cd backend
 python -m venv .venv
 ```
 
-가상환경에 패키지를 설치한다.
+필요한 백엔드·테스트 패키지를 가상환경에 설치한다.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 ```
 
-환경 변수 파일을 처음 만든다. 이미 `.env`가 있으면 이 단계는 건너뛴다.
+환경 파일을 처음 만든다. 이미 `.env`가 있으면 건너뛰어 기존 설정을 보존한다.
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-### macOS / Linux
+#### macOS / Linux
 
-백엔드 폴더로 이동한다.
-
-```bash
-cd backend
-```
-
-가상환경을 만들고 활성화한다.
+가상환경을 만든다.
 
 ```bash
 python3 -m venv .venv
 ```
 
+현재 터미널에서 가상환경을 활성화한다.
+
 ```bash
 source .venv/bin/activate
 ```
 
-가상환경에 패키지를 설치한다.
+필요한 백엔드·테스트 패키지를 설치한다.
 
 ```bash
 python -m pip install -r requirements-dev.txt
 ```
 
-환경 변수 파일을 처음 만든다. 이미 `.env`가 있으면 이 단계는 건너뛴다.
+환경 파일을 처음 만든다. `-n` 옵션은 기존 `.env`를 덮어쓰지 않는다.
 
 ```bash
 cp -n .env.example .env
 ```
 
-`.env` 파일에 Firestore 인증 정보, 허용 프론트 주소, 편집 토큰과 사용할 AI API 설정을 입력한다. 실제 비밀 값을 README나 GitHub에 올리지 않는다.
+### 5. 비밀 키와 서비스 설정
 
-백엔드 폴더에서 서버를 실행하고 터미널을 열어 둔다.
-
-Windows PowerShell:
+`backend/.env`를 텍스트 편집기로 연다. Windows에서는 다음 명령으로 메모장을 열 수 있다.
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+notepad .env
 ```
 
-macOS / Linux:
+macOS에서는 다음 명령으로 TextEdit에서 연다.
 
 ```bash
-python -m uvicorn app.main:app --reload
+open -e .env
 ```
 
-Swagger UI: http://127.0.0.1:8000/docs
+Linux에서는 사용 중인 텍스트 편집기로 `backend/.env`를 연다. 아래 항목을 `.env.example`에서 찾아 값을 채운다.
 
-### 테스트 실행
+| 변수 | 무엇을 넣나 | 필요할 때 |
+| --- | --- | --- |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | `./firebase-service-account.json` | 데이터·요약·대화 API를 사용할 때. JSON 파일을 `backend` 폴더에 저장한다. |
+| `OPENAI_API_KEY` | AI API 제공자에서 발급한 비밀 키 | AI 채팅 사용 시 |
+| `OPENAI_MODEL` | 해당 키와 API 주소에서 지원하는 모델 ID | AI 채팅 사용 시 |
+| `OPENAI_BASE_URL` | AI API 제공자의 호환 API 주소 | 사용하는 제공자에 따라 확인 |
+| `ALLOWED_ORIGINS` | `http://localhost:3000` | 로컬 브라우저에서 프론트엔드를 열 때 |
+| `ADMIN_API_TOKEN` | 직접 만든 긴 비밀 문자열 | 화면에서 데이터 추가·수정·삭제를 할 때 |
 
-새 터미널에서 저장소 루트부터 시작한다. 먼저 백엔드 폴더로 이동한다.
+이 저장소의 `.env.example`에는 Codyssey 호환 API 주소가 기본 입력되어 있다. Codyssey API 키를 쓰면 그 주소와 키, 지원 모델을 함께 사용한다. OpenAI 공식 API를 쓰려면 `OPENAI_BASE_URL` 줄을 지워 기본 주소를 사용하고, 다른 호환 API를 쓰려면 해당 제공자의 주소·키·모델을 함께 설정한다. 서로 다른 제공자의 키와 주소를 섞으면 채팅 호출이 실패한다.
 
-```text
-cd backend
-```
+다운로드한 Firebase JSON 파일을 `backend/firebase-service-account.json`이라는 이름으로 저장한다. `.env`의 `FIREBASE_SERVICE_ACCOUNT_PATH`에 `./firebase-service-account.json`을 입력한다. 파일명에 `service-account`가 들어 있으므로 `.gitignore`가 GitHub 업로드를 막는다. JSON 파일을 다른 이름이나 위치에 두었다면 `.env`의 경로도 함께 바꾼다. JSON 전체를 환경 변수로 넣는 방법을 택하면 `FIREBASE_SERVICE_ACCOUNT_JSON`을 사용하고, `FIREBASE_SERVICE_ACCOUNT_PATH`는 비워 둔다. **두 변수 중 하나만 설정한다.**
 
-Windows PowerShell에서는 다음 명령을 실행한다.
+`ALLOWED_ORIGINS`는 브라우저 주소와 정확히 같아야 한다. `localhost`와 `127.0.0.1`은 서로 다른 주소다. 주소를 바꾸면 `.env`의 허용 주소도 맞추고 백엔드를 재시작한다.
 
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
+`ADMIN_API_TOKEN`은 데이터 편집용이다. 비밀번호 관리자에서 무작위로 만든 긴 값을 사용하고, OpenAI 키나 Actions 키와 다른 값을 쓴다. 프론트 화면에도 같은 값을 입력한다. 토큰을 설정하지 않아도 읽기와 채팅은 가능하지만 데이터 편집 요청은 거부된다.
 
-macOS / Linux에서는 먼저 가상환경을 활성화한다.
+`ACTIONS_API_KEY`와 `ACTIONS_PUBLIC_BASE_URL`은 GPT Actions를 직접 연결할 때만 필요한 선택 설정이다. 두 값은 로컬 웹 실행에는 필요하지 않다. Actions 키는 관리자 토큰과 별도로 만든다.
 
-```bash
-source .venv/bin/activate
-```
+`.env`와 서비스 계정 키는 GitHub에 올리지 않는다. 이 저장소는 해당 파일을 `.gitignore`에 등록해 두었다. 채팅은 외부 API 사용량과 비용이 발생할 수 있다. 기본 요청 한도는 세션별 분당 5회, 서비스 전체 일일 100회다.
 
-그다음 테스트를 실행한다.
+### 6. 데이터 준비 (필요한 경우)
 
-```bash
-python -m pytest -q
-```
+화면에 기록이 보이려면 앱이 연결된 Firestore에 데이터가 있어야 한다. CSV 가져오기는 Firestore에 365개 날짜 기록을 쓰는 작업이다. 비어 있는 개발용 데이터베이스에만 실행하고, 이미 원본 데이터를 넣은 데이터베이스에서는 건너뛴다. 기존 날짜는 덮어쓰지 않는다.
 
-테스트는 실제 Firestore 대신 테스트 전용 저장소를 사용한다.
-
-### 원본 CSV 초기 가져오기
-
-`.env`에 Firestore 인증을 설정한 뒤 새 터미널에서 저장소 루트부터 시작한다. 백엔드 폴더로 이동한다.
+새 터미널에서 저장소 루트부터 백엔드 폴더로 이동한다.
 
 ```text
 cd backend
@@ -176,25 +192,113 @@ macOS / Linux에서는 가상환경을 활성화한다.
 source .venv/bin/activate
 ```
 
-그다음 가져오기를 실행한다. 기존 날짜는 건너뛰며 덮어쓰지 않는다.
+그다음 CSV를 가져온다.
 
 ```bash
 python import_csv.py ../data/opinet_2025_original.csv
 ```
 
+### 7. 백엔드 실행
+
+가상환경을 활성화한 **같은 터미널**에서 `backend` 폴더의 서버를 실행한다. 서버가 켜져 있는 동안 이 터미널을 닫지 않는다.
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+macOS / Linux:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+브라우저에서 [Swagger UI](http://127.0.0.1:8000/docs)를 연다.
+
+### 8. 프론트엔드 실행
+
+백엔드 서버를 켜 둔 상태에서 **새 터미널**을 연다. 저장소 루트에서 프론트엔드 폴더로 이동한다.
+
+```text
+cd frontend
+```
+
+Windows PowerShell:
+
+```powershell
+python -m http.server 3000
+```
+
+macOS / Linux:
+
+```bash
+python3 -m http.server 3000
+```
+
+브라우저에서 http://localhost:3000 을 연다. 로컬 프론트의 기본 백엔드 주소는 `http://127.0.0.1:8000`이다. `.env`의 `ALLOWED_ORIGINS`에는 프론트 주소인 `http://localhost:3000`을 넣는다.
+
+### 테스트 실행
+
+테스트는 실제 Firestore나 AI API를 호출하지 않고 테스트 대역을 사용하므로 비밀 키 없이 실행할 수 있다. 테스트만 하려면 5단계의 키 설정, 6단계의 데이터 가져오기, 서버 실행은 건너뛰어도 된다. 새 터미널에서 저장소 루트 기준으로 백엔드 폴더에 들어간다.
+
+```text
+cd backend
+```
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+macOS / Linux에서는 가상환경을 활성화한다.
+
+```bash
+source .venv/bin/activate
+```
+
+테스트를 실행한다.
+
+```bash
+python -m pytest -q
+```
+
+### 자주 막히는 부분
+
+| 보이는 문제 | 확인할 내용 |
+| --- | --- |
+| `ModuleNotFoundError: app` | 터미널의 현재 폴더가 `backend`인지 확인한다. 서버와 CSV 가져오기도 `backend`에서 실행한다. |
+| `python` 명령을 찾을 수 없음 | Python을 설치한 뒤 새 터미널을 열고 버전을 다시 확인한다. Windows 설치에서 Python 명령을 사용할 수 있도록 설정했는지도 확인한다. |
+| Linux에서 가상환경 생성 중 `ensurepip` 오류 | Ubuntu/Debian 계열은 Python 버전에 맞는 `python3-venv` 패키지가 추가로 필요할 수 있다. 배포판 안내에 따라 설치한 뒤 가상환경 생성부터 다시 실행한다. |
+| Firestore 연결 오류 또는 503 | Firestore를 만들었는지, 서비스 계정 JSON 경로가 맞는지, `.env`가 `backend` 안에 있는지 확인한다. |
+| 브라우저 CORS 오류 | `ALLOWED_ORIGINS`와 브라우저 주소가 완전히 같은지 확인하고, `.env`를 수정했다면 백엔드를 재시작한다. |
+| 채팅 오류 503/502 | API 키·모델 ID·API 주소가 같은 제공자의 설정인지, 모델 접근 권한과 사용 한도가 있는지 확인한다. |
+| 요약과 차트에 데이터가 없음 | 현재 `.env`가 가리키는 Firestore에 CSV를 가져왔는지 확인한다. 다른 Firebase 프로젝트에 가져온 데이터는 여기에 나타나지 않는다. |
+| 배포한 사이트의 첫 화면 로딩이 오래 걸림 | Render 무료 서비스는 유휴 상태 뒤 첫 응답이 늦을 수 있다. 화면 안내에 따라 잠시 기다린다. |
+
+`.env.example`의 기본값과 각 환경 변수의 용도는 아래 [설정](#설정) 절에서도 확인할 수 있다.
+
 2026-10-09: 실제 Firestore에 원본 데이터 365개를 저장하고 배포 API 요약 응답을 확인했다.
 
 ## 설정
-- FIREBASE_SERVICE_ACCOUNT_JSON 또는 FIREBASE_SERVICE_ACCOUNT_PATH: 서버 전용 인증 정보.
-- ALLOWED_ORIGINS: 쉼표로 구분한 프론트 주소.
-- ADMIN_API_TOKEN: 편집 요청의 X-Admin-Token 값. Vercel 공개 환경 설정에 넣지 않는다.
-- OPENAI_API_KEY: 서버 전용 API 키. 배포 서비스는 사용자 제공 Codyssey 호환 API 키를 사용한다.
-- OPENAI_BASE_URL: 호환 API 주소. 배포값은 https://copa.codyssey.kr/v1. OpenAI SDK가 환경 변수에서 읽는다.
-- OPENAI_MODEL: 배포값 gpt-5-mini. 다른 계정에서는 사용 가능한 모델을 설정한다.
-- CHAT_MAX_COMPLETION_TOKENS: 기본 800, 100~2000으로 제한. 배포값 2000. 800 설정에서 미완료 응답이 발생해 늘렸다.
-- CHAT_REQUESTS_PER_MINUTE: 세션별 UTC 분당 시도 한도, 기본 5 (최대 10).
-- CHAT_DAILY_REQUEST_LIMIT: 서비스 전체 UTC 일별 시도 한도, 기본 100 (최대 1000).
-- API_BASE_URL: Vercel 프론트 빌드 시 백엔드 주소를 지정한다.
+
+처음 로컬 실행에 필요한 항목은 [실행 전 필요한 설정](#5-비밀-키와-서비스-설정)을 따른다. 전체 변수는 다음과 같다.
+
+| 변수 | 적용 위치·필요한 기능 | 설명 |
+| --- | --- | --- |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` 또는 `FIREBASE_SERVICE_ACCOUNT_JSON` | 백엔드, Firestore 사용 | 서비스 계정 파일 경로 또는 JSON 값. 둘 중 하나만 설정한다. |
+| `ALLOWED_ORIGINS` | 백엔드, 웹 브라우저 연결 | 허용할 프론트엔드 주소를 쉼표로 구분한다. 주소가 다르면 브라우저에서 CORS 오류가 난다. |
+| `ADMIN_API_TOKEN` | 백엔드, 데이터 편집 | `X-Admin-Token` 인증에 쓴다. Vercel 공개 환경 변수에 넣지 않는다. |
+| `OPENAI_API_KEY` | 백엔드, AI 채팅 | 서버 전용 AI API 키다. 배포 환경은 Codyssey 호환 API 키를 사용한다. |
+| `OPENAI_BASE_URL` | 백엔드, 호환 AI API | `.env.example`의 값은 `https://copa.codyssey.kr/v1`이다. 공식 OpenAI API를 쓰면 이 변수를 제거한다. |
+| `OPENAI_MODEL` | 백엔드, AI 채팅 | API 제공자 계정에서 사용할 수 있는 모델 ID. 배포 환경은 `gpt-5-mini`다. |
+| `CHAT_MAX_COMPLETION_TOKENS` | 백엔드, AI 사용량 제한 | 요청당 출력 한도. 기본값 800, 설정 허용 범위 100~2000. |
+| `CHAT_REQUESTS_PER_MINUTE` | 백엔드, AI 사용량 제한 | 익명 세션별 분당 채팅 요청 한도. 기본값 5, 최대 10. |
+| `CHAT_DAILY_REQUEST_LIMIT` | 백엔드, AI 사용량 제한 | 서비스 전체의 UTC 기준 일일 채팅 요청 한도. 기본값 100, 최대 1000. |
+| `ACTIONS_API_KEY` | Render, GPT Actions 연결 | Actions의 Bearer 인증 키. 관리자 토큰과 별도로 만든다. |
+| `ACTIONS_PUBLIC_BASE_URL` | Render, GPT Actions 연결 | 배포된 백엔드의 HTTPS 주소다. |
+| `API_BASE_URL` | Vercel 빌드 | 프론트엔드가 호출할 백엔드 주소. 공개 주소이며 비밀 키를 넣지 않는다. |
 
 ## API
 - POST /api/data: date, value, memo 추가 (편집 인증 필요).
