@@ -37,7 +37,7 @@
 
 실제 서버 검증 (Python HTTP 클라이언트): 전체 365개·1680.32, 2월 28개·1728.26, 범위 밖 0개는 HTTP 200. 키 누락·오류 401, 날짜 역전 422.
 결과: ../actions-api-verification.json. 공개 스키마 사본: actions-openapi.json. 키 값은 포함하지 않는다.
-2026-10-09 ChatGPT GPT Actions 실제 검증: 편집기에서 전체 기간을 호출해 365개·평균 1680.32원/L를 반환했다. 저장된 비공개 GPT와의 대화에서 2025-02-01~2025-02-28을 질문해 Action이 28개 기록의 평균 1728.26원/L, 조회 기간·최저·최고와 기준일을 포함한 답변을 반환하는 것을 확인했다. 제출용 화면은 `../gpt-actions-live-verified.jpg`이다. 별도 Function Calling 검증과 구분한다.
+2026-10-09 ChatGPT GPT Actions 실제 검증: 편집기에서 전체 기간을 호출해 365개·평균 1680.32원/L를 반환했다. 저장된 비공개 GPT와의 대화에서 2025-02-01~2025-02-28을 질문해 Action이 28개 기록의 평균 1728.26원/L, 조회 기간·최저·최고와 기준일을 포함한 답변을 반환하는 것을 확인했다. 제출용 화면은 `../gpt-actions-live-verified.png`이다. 별도 Function Calling 검증과 구분한다.
 대화 기록·데이터 편집 API는 외부 Actions 스키마에 노출하지 않는다.
 같은 가격 요약 계산 서비스가 웹 채팅의 get_data_summary와 외부 getFuelPriceSummary에 사용된다.
 
