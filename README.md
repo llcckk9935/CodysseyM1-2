@@ -396,96 +396,101 @@ CSV는 표시 중인 전체 기록을 내보내며 source, is_modified, unit을 
 다크 모드와 익명 세션 토큰은 브라우저 저장소에 유지한다. 저장소 사용이 막히면
 익명 세션은 현재 페이지에서만 유지되므로 새로고침하면 이전 기록에 접근하지 못할 수 있다.
 
-### 프론트 검증 현황
-JavaScript 문법, 환경 변수 기반 빌드, HTML ID 연결 검사와 Playwright UI 테스트를 통과했다.
-UI 테스트는 요약·차트·채팅·대화 기록·테마 유지·CSV 다운로드·데이터 편집/추가/삭제·안전한 텍스트 처리와 390×844 모바일 뷰포트를 확인한다.
-배포된 브라우저에서 365개 기록·요약·가격 그래프·실제 AI 채팅·자동 저장·대화 불러오기, 임시 데이터 편집, CSV 다운로드를 확인했다.
-실제 휴대전화 브라우저에서도 사용자가 화면과 주요 기능이 정상임을 확인했다. 이 수동 확인은 자동화된 Android/iOS 기기 테스트와는 별개다.
-테스트 코드는 Playwright와 Chromium이 설치된 환경에서 실행한다.
-UI_FIXTURE는 {rows:[...],summary:{...}} 형식의 JSON 경로,
-UI_SCREENSHOT / UI_MOBILE_SCREENSHOT은 테스트 이미지 출력 경로다.
-HTTP 픽스처 테스트의 AI 응답은 테스트용이며 제출 화면으로 사용하지 않는다.
+## 검증 결과 요약
 
-## 현재 검증
-2026-10-09: pytest 총 18개 통과. 데이터 CRUD 흐름, 편집 인증, 중복 날짜,
-잘못된 날짜·가격·필드, CSV 기준 통계, 날짜 누락 시 추세 판단 중단, 동률 극값 검증.
-추가 검증: 요약 프롬프트 주입, 자동 저장·후속 대화·수동 저장, 세션 간 접근 차단,
-목록·불러오기·삭제, 요청 한도, AI 오류 및 저장 실패 처리, 토큰 설정 전달.
-API 단위 테스트는 저장소와 AI 응답 대역을 사용한다. 실제 OpenAI 호출 성공을 의미하지 않는다.
-별도 배포 검증: Firestore 365개 입력 완료, 요약 API HTTP 200 및 count=365 확인.
-대화 저장 HTTP 201, 목록·전체 메시지 불러오기 HTTP 200, 검증용 대화 삭제 HTTP 204 확인.
-ADMIN_API_TOKEN을 서버 환경 변수로 등록한 뒤 2026-01-01 검증용 기록을 추가(1700원), 수정(1701원), 삭제했다. 원본 365개와 평균 1680.32원/L를 복구 확인했다.
-실제 백엔드 URL을 API_BASE_URL로 지정한 프론트 빌드 성공. Codyssey 호환 API의 gpt-5-mini 호출 HTTP 200 확인.
-실제 질문에 평균 1,680.32원/L로 답변하여 요약 통계와 일치했다. 웹에서 자동 저장·이전 대화 불러오기 성공 확인.
-요청은 토큰·횟수 한도 안에서 실행하며 API 사용 비용은 키 제공자의 정책에 따른다.
+| 확인 영역 | 결과 |
+| --- | --- |
+| 자동 검사 | Python 테스트 18개 통과. JavaScript 문법·프론트 빌드·화면 테스트도 확인했다. |
+| 화면 기능 | 요약, 그래프, 채팅, 대화 불러오기, 데이터 편집, CSV, 다크 모드를 확인했다. 390×844 모바일 화면과 실제 휴대전화 브라우저에서도 확인했다. |
+| 배포 서비스 | Firestore 365개 기록, 실제 AI 답변과 대화 저장·불러오기를 확인했다. 임시 데이터 편집 후 원본 데이터 복구도 확인했다. |
+| GPT Actions | ChatGPT에서 기간 조회 도구를 실제 호출해 2025년 2월 28개 평균 1728.26원/L를 확인했다. |
+
+자동 검사의 AI 응답은 테스트 대역을 사용한다. 실제 AI 호출 여부는 별도의 배포 확인으로 검증했으며, 실제 호출은 제공자 사용량과 비용에 반영될 수 있다.
+
+<details>
+<summary>검증 세부 내역과 테스트 환경 펼쳐보기</summary>
+
+- Python 테스트는 CRUD, 입력 검증, 추세 계산, 채팅 저장·불러오기, 세션 분리, 요청 한도와 오류 처리를 확인했다.
+- UI 테스트는 요약·차트·채팅·대화 기록·테마 유지·CSV 다운로드·데이터 편집·안전한 텍스트 처리와 390×844 화면을 확인했다. 실행에는 Playwright와 Chromium이 필요하다.
+- `UI_FIXTURE`는 `{rows:[...],summary:{...}}` 형식의 JSON 파일 경로다. `UI_SCREENSHOT`과 `UI_MOBILE_SCREENSHOT`은 화면 캡처 저장 경로다. 픽스처 응답은 제출용 실제 AI 답변이 아니다.
+- 배포 API에서 요약, 대화 저장·목록·불러오기·삭제와 데이터 추가·수정·삭제를 확인했다. 임시 가격 기록을 제거하고 원본 365개와 평균 1680.32원/L가 복구된 것을 확인했다.
+- GPT Actions는 정상 인증, 인증 누락·잘못된 키, 잘못된 날짜 범위를 확인했다. [검증 결과 JSON](actions-api-verification.json)
+
+</details>
 
 ## 채팅과 대화 API
-- POST /api/chat: `{ "message": "평균 가격은?", "conversation_id": null }`.
-  기존 대화 UUID를 전달하면 이어서 대화한다. 반환: answer, conversation_id, saved, summary.
-- POST /api/conversations: title, messages(role=user/assistant, content)로 수동 저장.
-- GET /api/conversations: 해당 세션의 목록 (전체 messages는 포함하지 않음).
-- GET /api/conversations/{id}: 전체 messages 포함한 특정 대화.
-- DELETE /api/conversations/{id}: 해당 대화 삭제.
-모든 대화 요청에는 X-Session-Token 헤더 필요. 클라이언트에서 암호학적으로 무작위인
-최소 32자 토큰을 생성하고 유지한다. 서버는 해시를 저장하며 다른 세션의 대화는 404로 응답한다.
-토큰을 잃으면 기록에 접근할 수 없다. 이는 계정 로그인 시스템이 아닌 익명 접근 방식이다.
-토큰을 아는 사람은 기록에 접근할 수 있으므로 공유하거나 로그에 남기지 않는다.
-대화 최대 100개 메시지, 질문 최대 2000자, 프롬프트에는 최근 12개 메시지만 포함한다.
-매 요청마다 최신 저장 데이터 요약을 재계산해 시스템 프롬프트에 넣는다.
-대화에 latest_summary로 마지막 답변 생성 시점의 요약을 함께 보관한다.
-conversations 컬렉션 외에 chat_limits 컬렉션을 비용 제한용으로 사용한다.
-호출 시도부터 한도에 포함하고 실패한 시도도 환급하지 않는다. 자동 SDK 재시도는 꺼두었다.
-동시 대화 수정은 revision 검증으로 덮어쓰기를 막는다. 답변 생성 후 저장이 실패하면
-답변은 반환하되 saved=false와 warning을 반환한다. 화면에서 저장 성공으로 표시하면 안 된다.
-Function Calling으로 도구 선택을 최대 두 번 수행하고, 필요하면 마지막 답변 생성을 한 번 수행한다.
-한 채팅 요청의 OpenAI 호출은 최대 3회. CHAT_MAX_COMPLETION_TOKENS는 호출별 제한이므로
-최대 출력/추론 토큰 한도는 요청당 3배이며 입력 토큰 비용은 별도다.
-세션별/전체 일별 제한은 OpenAI 개별 호출 수가 아닌 채팅 요청 시도 수에 적용된다.
+
+브라우저 대화는 익명 세션으로 구분한다. 로그인은 필요하지 않으며, 브라우저 저장 정보를 잃으면 이전 대화를 복구할 수 없다.
+
+| API | 기능 |
+| --- | --- |
+| `POST /api/chat` | 질문에 답하고 대화를 자동 저장한다. `conversation_id`를 보내면 기존 대화를 이어간다. |
+| `GET /api/conversations` | 현재 세션의 대화 목록을 조회한다. |
+| `GET /api/conversations/{id}` | 선택한 대화의 전체 메시지를 불러온다. |
+| `POST /api/conversations` | 대화를 수동 저장한다. |
+| `DELETE /api/conversations/{id}` | 대화를 삭제한다. |
+
+<details>
+<summary>세션·저장·사용량 제한 상세</summary>
+
+- 대화 요청에는 `X-Session-Token`이 필요하다. 브라우저가 임의 토큰을 만들고 서버는 해시만 저장한다. 다른 세션은 해당 대화를 볼 수 없다.
+- 토큰을 아는 사람은 그 세션의 기록에 접근할 수 있으므로 공유하거나 로그에 남기지 않는다.
+- 대화는 최대 100개 메시지, 질문은 최대 2000자다. 모델에는 최근 12개 메시지와 매 요청 새로 계산한 데이터 요약을 전달한다.
+- 마지막 답변 생성 당시의 요약과 도구 호출 정보도 대화에 저장한다. 동시 수정 충돌을 확인하고, 저장 실패 시 답변을 저장된 것처럼 표시하지 않는다.
+- 실패한 호출도 요청 한도에 포함되며 자동 재시도는 꺼져 있다. 실제 호출은 AI 제공자 사용량과 비용에 반영된다.
+- Function Calling을 포함해 한 채팅 요청당 모델 호출은 최대 3회다. `CHAT_MAX_COMPLETION_TOKENS`는 호출별 한도이므로 한 요청의 출력·추론 토큰 한도는 설정값의 최대 3배이며, 입력 토큰 비용은 별도다.
+
+</details>
 
 ## Function Calling
-도구: get_data_summary(기간 필터 가능), get_conversation_history(현재 대화의 최근 12개 메시지만).
-모델이 질문에 따라 tool_choice=auto로 선택하고, 서버가 허용 도구와 인자를 검증한 뒤 실행한다.
-같은 요청의 원본 데이터 스냅샷을 사용해 중간 편집에 따른 통계 불일치를 줄인다.
-도구 결과를 tool 메시지로 전달하고 GPT가 최종 답변을 작성한다.
-도구의 reason은 모델이 제공한 짧은 선택 설명이며 모델 내부 사고 과정의 검증 자료가 아니다.
-응답 tool_trace와 저장 기록 latest_tool_trace에 이름·인자·상태·결과 개수/기간을 남긴다.
-일반 전체 통계 질문은 처음 주입된 요약만으로 답할 수 있어 도구를 호출하지 않을 수도 있다.
-기간별 요약 질문은 get_data_summary를, 이전 대화 확인 질문은 get_conversation_history를 사용하도록 지시한다.
-최대 2개 도구 실행, 최대 3회 GPT 호출. 허용하지 않은 도구나 잘못된 인자는 실행하지 않는다.
 
-검증한 테스트 시나리오 (모델 응답 대역):
-“2월 평균은?” → get_data_summary(2025-02-01–2025-02-28, reason) → 필터된 통계 → 최종 답변.
-위 테스트의 1700원은 테스트 입력 2개 중 2월 기록 1개의 값이며 실제 2025년 2월 평균이 아니다.
-현재 대화 조회의 범위 제한, 임의 delete_data 도구 거부, 두 번 호출 후 도구 선택 중단도 확인했다.
-2026-10-09 실제 Codyssey 호환 GPT 호출 검증: “2025년 2월 1일부터 2월 28일까지의 평균 가격을 기간별 요약 도구로 조회해서 알려줘.”
-모델이 get_data_summary를 선택했고 화면에 선택 근거 “사용자 요청: 2025-02-01–2025-02-28 평균 가격 조회”와 성공·28개 기록을 표시했다.
-최종 답변 평균 1728.26원/L는 배포 요약 API의 2025-02 월평균과 일치한다. 전체 평균 1680.32원/L와 구분했다.
-gpt-5-mini는 사용자 제공 Codyssey 호환 API 예시와 사용 가능한 설정을 따라 선택했다. 모델 간 성능 비교는 하지 않았다.
+AI가 질문에 맞는 내부 도구를 선택해 서버에서 실행하고, 그 결과를 바탕으로 답변한다.
 
-호출 흐름:
-1. 사용자 질문과 전체 요약을 GPT에 전달.
-2. GPT가 필요하면 도구 이름·날짜·짧은 선택 설명을 반환.
-3. 서버가 인자를 검증하고 내부 요약/현재 대화 조회 서비스 실행.
-4. 계산 결과를 GPT에 전달해 최종 답변 생성.
-5. 답변·요약·도구 호출 기록을 conversations에 저장.
+| 도구 | 언제 쓰나 | 접근 범위 |
+| --- | --- | --- |
+| `get_data_summary` | 전체 또는 특정 기간의 가격 통계를 물을 때 | 요청된 기간의 저장 데이터 |
+| `get_conversation_history` | 현재 대화에서 앞서 나눈 내용을 물을 때 | 현재 대화의 최근 12개 메시지 |
+
+**호출 흐름:** 질문과 요약을 GPT에 전달 → GPT가 필요하면 도구와 인자를 선택 → 서버가 인자를 검증하고 실행 → 결과를 GPT에 전달해 답변 생성 → 답변과 도구 사용 기록 저장.
+
+전체 통계 질문은 처음 전달된 요약만으로 답할 수 있어 도구 호출이 생략될 수 있다. 도구 실행은 최대 2회이며, 허용되지 않은 도구는 실행하지 않는다. 모델이 제공하는 `reason`은 도구 선택 설명이지 내부 사고 과정의 검증 자료가 아니다.
+
+<details>
+<summary>Function Calling 검증 예시 펼쳐보기</summary>
+
+- 테스트 대역: “2월 평균은?” → 2025년 2월 요약 도구 호출 → 필터 통계 → 최종 답변. 여기서 1700원은 테스트 입력값이며 실제 월평균이 아니다.
+- 실제 배포: GPT가 2025-02-01부터 2025-02-28까지의 요약 도구를 선택하고 28개 기록, 평균 1728.26원/L를 답했다. 전체 평균 1680.32원/L와 구분했다.
+- 응답에는 도구 이름·인자·성공 여부·결과 기간과 개수를 남긴다. 같은 요청에서 읽은 데이터 스냅샷으로 요약한다.
+
+</details>
 
 ## GPT Actions
-같은 요약 기능을 GET /api/actions/summary로 외부에 제공한다.
-Authorization: Bearer 인증에 별도 ACTIONS_API_KEY를 사용한다.
-ACTIONS_PUBLIC_BASE_URL은 실제 배포된 HTTPS 백엔드 주소다.
-/actions/openapi.json은 공개할 조회 API 한 개만 포함하며 키 값은 포함하지 않는다.
-상세 설정·검증 절차: docs/gpt-actions-setup.md. 미션 요구사항 재점검: [mission-audit.md](mission-audit.md).
-2026-10-09: ACTIONS_API_KEY와 ACTIONS_PUBLIC_BASE_URL을 Render 환경 변수로 설정하고 배포 성공을 확인했다.
-실제 HTTPS 검증: /actions/openapi.json 200, 정상 인증의 전체·2월·범위 밖 조회 200, 키 누락·잘못된 키 401, 역전된 날짜 범위 422.
-전체 365개 평균 1680.32, 2월 28개 평균 1728.26, 범위 밖 count=0. [검증 결과](actions-api-verification.json).
-이후 GPT 편집기에서 스키마를 가져오고 Bearer API 키 인증을 연결했다. Actions의 전체 기간 테스트에서 365개 평균 1680.32원/L를 반환했고, 저장한 GPT의 실제 대화에서 2025-02-01–2025-02-28 조회를 실행해 28개 평균 1728.26원/L로 답했다. 조회 기간·단위·최근 데이터 기준일을 화면에서 확인했다. 실제 대화 증거는 [GPT Actions 실제 호출 화면](gpt-actions-live-verified.png)이다. 비밀 키는 스크린샷과 저장소에 포함하지 않았다.
 
-API 호출 방식 참고:
-https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
+ChatGPT 커스텀 GPT가 같은 가격 요약을 읽기 전용 API로 조회하도록 연결했다.
+
+| 항목 | 내용 |
+| --- | --- |
+| API | `GET /api/actions/summary` |
+| 인증 | 별도 `ACTIONS_API_KEY`를 사용하는 Bearer 인증 |
+| 스키마 | `/actions/openapi.json` |
+| 설정 안내 | [GPT Actions 설정 문서](docs/gpt-actions-setup.md) |
+
+실제 연결 후 전체 365개 요약과 2월 28개 요약을 조회했다. 키 누락·잘못된 키는 401, 날짜 범위 오류는 422로 처리되는 것도 확인했다. [검증 응답](actions-api-verification.json)
+
+<details>
+<summary>API 참고 자료와 미션 점검표</summary>
+
+- [Chat Completions API 참고](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)
+- [미션 요구사항별 점검표](mission-audit.md)
+
+</details>
 
 ## 제출 스크린샷
 
-실제 배포 서비스에서 촬영했다. CRUD 화면의 2026-01-01은 검증용 임시 입력이며 촬영 후 삭제했다.
+실제 배포 서비스 화면이다. 데이터 편집 화면의 2026-01-01 기록은 검증용 임시 입력이었으며 촬영 후 삭제했다.
+
+<details>
+<summary>제출 화면 모아보기</summary>
 
 ![데이터 요약과 그래프](data-summary.jpg)
 
@@ -497,4 +502,6 @@ https://developers.openai.com/api/reference/resources/chat/subresources/completi
 
 ![ChatGPT GPT Actions 기간 조회 성공](gpt-actions-live-verified.png)
 
-관리자 토큰은 Render의 ADMIN_API_TOKEN을 확인하여 웹의 편집 인증 설정에 입력한다. 공개 문서·프론트 코드에는 토큰을 싣지 않는다.
+</details>
+
+데이터 편집에는 Render의 `ADMIN_API_TOKEN`이 필요하다. 웹의 편집 인증 설정에 입력하며, 공개 문서나 프론트 코드에는 토큰을 넣지 않는다.
